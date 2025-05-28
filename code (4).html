@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Resizer & Converter</title>
+    <style>
+        /* CSS for the Image Resizer Tool */
+        :root {
+            --primary-blue: hsl(210, 100%, 50%); /* Bright blue */
+            --light-blue: hsl(210, 100%, 90%);
+            --dark-blue: hsl(210, 100%, 30%);
+            --white: #ffffff;
+            --light-gray: #f0f0f0;
+            --medium-gray: #ccc;
+            --dark-text: #333;
+            --border-radius: 8px;
+            --transition-speed: 0.3s ease;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-gray);
+            color: var(--dark-text);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top */
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 800px;
+            box-sizing: border-box;
+            margin-top: 20px; /* Space from top */
+        }
+
+        h1, h2, h3 {
+            color: var(--dark-blue);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .upload-btn {
+            display: inline-block;
+            background-color: var(--primary-blue);
+            color: var(--white);
+            padding: 12px 25px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: background-color var(--transition-speed), transform var(--transition-speed);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            margin-bottom: 15px;
+        }
+
+        .upload-btn:hover {
+            background-color: var(--dark-blue);
+            transform: translateY(-2px);
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--primary-blue);
+            border-radius: var(--border-radius);
+            padding: 40px;
+            text-align: center;
+            color: var(--dark-blue);
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        }
+
+        .drop-zone.dragover {
+            background-color: var(--light-blue);
+            border-color: var(--dark-blue);
+        }
+
+        .file-name {
+            margin-top: 10px;
+            font-style: italic;
+            color: var(--dark-text);
+            font-size: 0.9em;
+        }
+
+        /* Preview Section */
+        .preview-section {
+            background-color: var(--light-gray);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px; /* Limit height for large images */
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Settings Section */
+        .settings-section {
+            background-color: var(--light-gray);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .setting-group {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .setting-group:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .setting-group h3 {
+            text-align: left;
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: var(--primary-blue);
+        }
+
+        /* Dimension Inputs */
+        .dimension-inputs {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap; /* Allow wrapping on small screens */
+            justify-content: center; /* Center align on wrap */
+        }
+
+        .dimension-inputs label {
+            font-weight: bold;
+            color: var(--dark-text);
+            flex-shrink: 0; /* Prevent labels from shrinking */
+        }
+
+        .dimension-inputs input[type="number"] {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--medium-gray);
+            border-radius: 5px;
+            font-size: 1em;
+            max-width: 120px; /* Limit max width for number inputs */
+            box-sizing: border-box; /* Include padding and border in element's total width */
+        }
+        
+        /* Specific styling for width/height inputs in a flex container */
+        .dimension-inputs input[type="number"]:first-of-type {
+            margin-right: 5px; /* Small gap between width input and 'x' */
+        }
+        .dimension-inputs input[type="number"]:last-of-type {
+            margin-left: 5px; /* Small gap between 'x' and height input */
+        }
+
+
+        .dimension-x {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--dark-blue);
+            flex-shrink: 0;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95em;
+            color: var(--dark-text);
+            justify-content: center; /* Center checkbox */
+        }
+
+        /* Radio Buttons */
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center; /* Center align on wrap */
+        }
+
+        .radio-group input[type="radio"] {
+            display: none; /* Hide default radio button */
+        }
+
+        .radio-group label {
+            background-color: var(--white);
+            border: 1px solid var(--medium-gray);
+            border-radius: 20px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed);
+            font-weight: 500;
+        }
+
+        .radio-group input[type="radio"]:checked + label {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            border-color: var(--dark-blue);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .radio-group label:hover {
+            border-color: var(--dark-blue);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Slider */
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap; /* Allow wrapping */
+            justify-content: center; /* Center align on wrap */
+        }
+
+        .slider-group input[type="range"] {
+            flex-grow: 1;
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: var(--medium-gray);
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity var(--transition-speed);
+        }
+
+        .slider-group input[type="range"]:hover {
+            opacity: 1;
+        }
+
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-blue);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: background var(--transition-speed);
+        }
+
+        .slider-group input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--dark-blue);
+        }
+
+        .slider-group span {
+            font-weight: bold;
+            min-width: 50px;
+            text-align: right;
+            color: var(--primary-blue);
+            flex-shrink: 0;
+        }
+
+        /* Output Info */
+        .output-info {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid var(--medium-gray);
+        }
+
+        .output-info h3 {
+            color: var(--dark-blue);
+            margin-bottom: 0;
+        }
+
+        .output-info span {
+            color: var(--primary-blue);
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+            flex-wrap: wrap; /* Allow wrapping */
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: background-color var(--transition-speed), transform var(--transition-speed), opacity var(--transition-speed);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            flex-shrink: 0; /* Prevent buttons from shrinking */
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .primary-btn {
+            background-color: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .primary-btn:not(:disabled):hover {
+            background-color: var(--dark-blue);
+            transform: translateY(-2px);
+        }
+
+        .secondary-btn {
+            background-color: var(--medium-gray);
+            color: var(--dark-text);
+        }
+
+        .secondary-btn:not(:disabled):hover {
+            background-color: var(--dark-text);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            .dimension-inputs, .radio-group, .slider-group, .action-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .dimension-inputs input[type="number"] {
+                max-width: none;
+                margin: 0 !important; /* Override specific margins for stacked inputs */
+            }
+            .radio-group label, .btn {
+                width: 100%;
+                box-sizing: border-box;
+                text-align: center;
+            }
+            .slider-group input[type="range"] {
+                width: auto; /* Allow slider to take available width */
+            }
+            .slider-group span {
+                text-align: center;
+                min-width: unset;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Image Resizer & Converter</h1>
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+            <label for="imageUpload" class="upload-btn">Choose Image</label>
+            <div id="dropZone" class="drop-zone">
+                Or drag & drop an image here
+            </div>
+            <p id="fileName" class="file-name"></p>
+        </div>
+
+        <!-- Preview Section -->
+        <div id="previewSection" class="preview-section hidden">
+            <h2>Original Image Preview</h2>
+            <img id="originalImagePreview" src="#" alt="Original Image" class="image-preview">
+        </div>
+
+        <!-- Settings and Output Section -->
+        <div id="settingsSection" class="settings-section hidden">
+            <h2>Settings</h2>
+
+            <!-- Dimensions -->
+            <div class="setting-group">
+                <h3>Dimensions</h3>
+                <div class="dimension-inputs">
+                    <label for="widthInput">Width:</label>
+                    <input type="number" id="widthInput" min="1" placeholder="Auto">
+                    <span class="dimension-x">x</span>
+                    <label for="heightInput">Height:</label>
+                    <input type="number" id="heightInput" min="1" placeholder="Auto">
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="maintainAspectRatio" checked>
+                    <label for="maintainAspectRatio">Maintain Aspect Ratio</label>
+                </div>
+            </div>
+
+            <!-- Format -->
+            <div class="setting-group">
+                <h3>Output Format</h3>
+                <div class="radio-group">
+                    <input type="radio" id="formatJpeg" name="outputFormat" value="jpeg" checked>
+                    <label for="formatJpeg">JPEG</label>
+                    <input type="radio" id="formatPng" name="outputFormat" value="png">
+                    <label for="formatPng">PNG</label>
+                    <input type="radio" id="formatWebp" name="outputFormat" value="webp">
+                    <label for="formatWebp">WebP</label>
+                </div>
+            </div>
+
+            <!-- Quality (for lossy formats) -->
+            <div class="setting-group" id="qualitySettingGroup">
+                <h3>Quality (JPEG/WebP)</h3>
+                <div class="slider-group">
+                    <input type="range" id="qualitySlider" min="10" max="100" value="80">
+                    <span id="qualityValue">80%</span>
+                </div>
+            </div>
+
+            <!-- Estimated Size -->
+            <div class="output-info">
+                <h3>Estimated Output Size: <span id="estimatedSize">0 KB</span></h3>
+            </div>
+
+            <!-- Actions -->
+            <div class="action-buttons">
+                <button id="downloadBtn" class="btn primary-btn" disabled>Download Image</button>
+                <button id="resetBtn" class="btn secondary-btn" disabled>Reset</button>
+            </div>
+        </div>
+    </div>
+    <!-- Hidden Canvas for Image Processing -->
+    <canvas id="hiddenCanvas" style="display: none;"></canvas>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Element References ---
+            const imageUpload = document.getElementById('imageUpload');
+            const dropZone = document.getElementById('dropZone');
+            const fileNameSpan = document.getElementById('fileName');
+            const previewSection = document.getElementById('previewSection');
+            const originalImagePreview = document.getElementById('originalImagePreview');
+            const settingsSection = document.getElementById('settingsSection');
+            const widthInput = document.getElementById('widthInput');
+            const heightInput = document.getElementById('heightInput');
+            const maintainAspectRatio = document.getElementById('maintainAspectRatio');
+            const formatRadios = document.querySelectorAll('input[name="outputFormat"]');
+            const qualitySettingGroup = document.getElementById('qualitySettingGroup');
+            const qualitySlider = document.getElementById('qualitySlider');
+            const qualityValueSpan = document.getElementById('qualityValue');
+            const estimatedSizeSpan = document.getElementById('estimatedSize');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const hiddenCanvas = document.getElementById('hiddenCanvas');
+            const ctx = hiddenCanvas.getContext('2d');
+
+            // --- Global State Variables ---
+            let originalImage = new Image(); // In-memory image object for drawing on canvas
+            let originalWidth = 0;
+            let originalHeight = 0;
+            let currentBlobUrl = null; // Stores the Blob URL for the processed image for efficient download
+
+            // --- Utility Functions ---
+
+            /** Clears the form, resets UI elements, and revokes any existing Blob URL. */
+            function clearForm() {
+                fileNameSpan.textContent = '';
+                originalImagePreview.src = '#'; // Clear image preview source
+                previewSection.classList.add('hidden');
+                settingsSection.classList.add('hidden');
+                downloadBtn.disabled = true;
+                resetBtn.disabled = true;
+
+                originalImage = new Image(); // Reset image object
+                originalWidth = 0;
+                originalHeight = 0;
+                widthInput.value = ''; // Clear dimension inputs
+                heightInput.value = '';
+                maintainAspectRatio.checked = true; // Reset aspect ratio checkbox
+
+                formatRadios[0].checked = true; // Default to JPEG
+                qualitySlider.value = 80; // Reset quality slider
+                qualityValueSpan.textContent = '80%';
+                estimatedSizeSpan.textContent = '0 KB';
+                qualitySettingGroup.classList.remove('hidden'); // Ensure quality settings are visible by default
+
+                // Clean up previous Blob URL if it exists to prevent memory leaks
+                if (currentBlobUrl) {
+                    URL.revokeObjectURL(currentBlobUrl);
+                    currentBlobUrl = null;
+                }
+            }
+
+            /** Shows the preview and settings sections, and enables action buttons. */
+            function showSettingsAndPreview() {
+                previewSection.classList.remove('hidden');
+                settingsSection.classList.remove('hidden');
+                downloadBtn.disabled = false; // Will be re-disabled by processImage if no data
+                resetBtn.disabled = false;
+            }
+
+            /** Updates the quality slider's displayed value. */
+            function updateQualityDisplay() {
+                qualityValueSpan.textContent = `${qualitySlider.value}%`;
+            }
+
+            /** Returns the currently selected output format (e.g., 'jpeg', 'png', 'webp'). */
+            function getSelectedFormat() {
+                return document.querySelector('input[name="outputFormat"]:checked').value;
+            }
+
+            /** Returns the MIME type string for a given format. */
+            function getMimeType(format) {
+                switch (format) {
+                    case 'jpeg': return 'image/jpeg';
+                    case 'png': return 'image/png';
+                    case 'webp': return 'image/webp';
+                    default: return 'image/jpeg'; // Fallback
+                }
+            }
+
+            /**
+             * The core function that resizes the image on a hidden canvas,
+             * applies format and quality settings, estimates output size,
+             * and prepares the image for download.
+             */
+            function processImage() {
+                // If no image is loaded, disable download and reset size info
+                if (!originalImage.src || originalImage.src === '#') {
+                    estimatedSizeSpan.textContent = '0 KB';
+                    downloadBtn.disabled = true;
+                    if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+                    currentBlobUrl = null;
+                    return;
+                }
+
+                const format = getSelectedFormat();
+                const mimeType = getMimeType(format);
+                const quality = parseFloat(qualitySlider.value) / 100;
+
+                let targetWidth = parseInt(widthInput.value);
+                let targetHeight = parseInt(heightInput.value);
+
+                // Initialize original dimensions if not set (e.g., first load)
+                if (!originalWidth || !originalHeight) {
+                    originalWidth = originalImage.naturalWidth;
+                    originalHeight = originalImage.naturalHeight;
+                    // Also update the input fields to show original dimensions if they are empty
+                    if (isNaN(targetWidth) || targetWidth === 0) widthInput.value = originalWidth;
+                    if (isNaN(targetHeight) || targetHeight === 0) heightInput.value = originalHeight;
+                    targetWidth = originalWidth;
+                    targetHeight = originalHeight;
+                }
+                
+                // If dimension inputs are empty or invalid, use original dimensions for canvas
+                if (isNaN(targetWidth) || targetWidth <= 0) targetWidth = originalWidth;
+                if (isNaN(targetHeight) || targetHeight <= 0) targetHeight = originalHeight;
+
+                // Aspect ratio logic: Adjust target dimensions to maintain ratio if checked
+                if (maintainAspectRatio.checked) {
+                    const aspectRatio = originalWidth / originalHeight;
+
+                    const widthInputHasValue = widthInput.value !== '';
+                    const heightInputHasValue = heightInput.value !== '';
+
+                    if (widthInputHasValue && (!heightInputHasValue || isNaN(parseInt(heightInput.value)))) {
+                        // If width is entered/changed, and height is empty/invalid, calculate height
+                        targetHeight = Math.round(targetWidth / aspectRatio);
+                        heightInput.value = targetHeight; // Update UI
+                    } else if (heightInputHasValue && (!widthInputHasValue || isNaN(parseInt(widthInput.value)))) {
+                        // If height is entered/changed, and width is empty/invalid, calculate width
+                        targetWidth = Math.round(targetHeight * aspectRatio);
+                        widthInput.value = targetWidth; // Update UI
+                    } else if (widthInputHasValue && heightInputHasValue) {
+                        // If both are provided, prioritize width and adjust height to maintain ratio
+                        targetHeight = Math.round(targetWidth / aspectRatio);
+                        heightInput.value = targetHeight; // Update UI
+                    } else { // Both are empty, revert to original dimensions
+                        targetWidth = originalWidth;
+                        targetHeight = originalHeight;
+                        widthInput.value = originalWidth; // Update UI
+                        heightInput.value = originalHeight; // Update UI
+                    }
+                } else {
+                    // If aspect ratio is NOT maintained, use inputs as-is or original if empty/invalid
+                    if (isNaN(parseInt(widthInput.value)) || parseInt(widthInput.value) <= 0) targetWidth = originalWidth;
+                    if (isNaN(parseInt(heightInput.value)) || parseInt(heightInput.value) <= 0) targetHeight = originalHeight;
+                }
+
+                // Set canvas dimensions
+                hiddenCanvas.width = targetWidth;
+                hiddenCanvas.height = targetHeight;
+
+                // Draw image on canvas
+                ctx.clearRect(0, 0, hiddenCanvas.width, hiddenCanvas.height); // Clear previous drawing
+                ctx.drawImage(originalImage, 0, 0, targetWidth, targetHeight);
+
+                // Get Data URL from canvas
+                let dataURL;
+                // PNG is lossless; quality parameter is ignored by toDataURL for 'image/png'
+                if (format === 'png') {
+                    dataURL = hiddenCanvas.toDataURL(mimeType);
+                } else { // JPEG, WebP support quality parameter
+                    dataURL = hiddenCanvas.toDataURL(mimeType, quality);
+                }
+
+                // Estimate size: Base64 string length * 0.75 (approximate bytes)
+                const base64String = dataURL.split(',')[1];
+                const estimatedBytes = Math.round(base64String.length * 0.75); 
+                estimatedSizeSpan.textContent = `${(estimatedBytes / 1024).toFixed(2)} KB`;
+
+                // Prepare for download: Convert dataURL to Blob for better download handling
+                if (currentBlobUrl) {
+                    URL.revokeObjectURL(currentBlobUrl); // Clean up previous Blob URL
+                }
+                fetch(dataURL)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        currentBlobUrl = URL.createObjectURL(blob);
+                        downloadBtn.disabled = false; // Enable download button only if blob created successfully
+                    })
+                    .catch(e => {
+                        console.error('Error creating blob:', e);
+                        downloadBtn.disabled = true;
+                        if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl); // Clean up on error
+                        currentBlobUrl = null;
+                    });
+            }
+
+            /** Initiates the download of the processed image. */
+            function downloadImage() {
+                if (!currentBlobUrl) {
+                    alert('No image processed for download.');
+                    return;
+                }
+
+                const format = getSelectedFormat();
+                const link = document.createElement('a');
+                link.href = currentBlobUrl;
+                
+                // Generate a descriptive filename
+                const originalFileName = fileNameSpan.textContent.split('.')[0] || 'image';
+                const downloadWidth = widthInput.value || originalWidth;
+                const downloadHeight = heightInput.value || originalHeight;
+                const qualityText = (format === 'png' ? '' : `_${qualitySlider.value}q`);
+                link.download = `${originalFileName}_${downloadWidth}x${downloadHeight}${qualityText}.${format}`;
+                
+                document.body.appendChild(link);
+                link.click(); // Programmatically click the link to trigger download
+                document.body.removeChild(link); // Remove the link element
+
+                // Clean up the Blob URL after download is initiated.
+                // A small delay ensures the browser has time to start the download.
+                setTimeout(() => {
+                    URL.revokeObjectURL(currentBlobUrl);
+                    currentBlobUrl = null;
+                    downloadBtn.disabled = true; // Disable until new processing occurs
+                }, 100);
+            }
+
+            // --- Event Listeners ---
+
+            // 1. File Input Change Listener: Handles selection via file picker
+            imageUpload.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    fileNameSpan.textContent = file.name;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        originalImage.onload = () => {
+                            originalWidth = originalImage.naturalWidth;
+                            originalHeight = originalImage.naturalHeight;
+                            widthInput.value = originalWidth; // Set dimension inputs to original size
+                            heightInput.value = originalHeight;
+                            showSettingsAndPreview();
+                            processImage(); // Initial processing after image is loaded and dimensions set
+                        };
+                        originalImage.src = e.target.result; // Set source for the hidden Image object
+                        originalImagePreview.src = e.target.result; // Set source for the preview img tag
+                    };
+                    reader.readAsDataURL(file); // Read file as Data URL
+                } else {
+                    clearForm(); // If no file selected, reset everything
+                }
+            });
+
+            // 2. Drag and Drop Listeners: Handles image drops onto the drop zone
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault(); // Prevent default to allow drop
+                dropZone.classList.add('dragover'); // Add visual feedback
+            });
+
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover'); // Remove visual feedback
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                const file = e.dataTransfer.files[0]; // Get the dropped file
+                if (file && file.type.startsWith('image/')) {
+                    // Assign file to the input element and trigger its change event
+                    imageUpload.files = e.dataTransfer.files;
+                    imageUpload.dispatchEvent(new Event('change'));
+                } else {
+                    alert('Please drop an image file (JPEG, PNG, GIF, etc.).');
+                }
+            });
+
+            // 3. Output Format Radio Buttons: Changes output format and updates UI
+            formatRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    const selectedFormat = getSelectedFormat();
+                    // Hide/show quality slider based on format (PNG is lossless)
+                    if (selectedFormat === 'png') {
+                        qualitySettingGroup.classList.add('hidden');
+                    } else {
+                        qualitySettingGroup.classList.remove('hidden');
+                    }
+                    processImage(); // Re-process image with new format/quality
+                });
+            });
+
+            // 4. Quality Slider Input: Updates quality and re-estimates size
+            qualitySlider.addEventListener('input', () => {
+                updateQualityDisplay(); // Update percentage display
+                processImage(); // Re-process image with new quality
+            });
+
+            // 5. Dimension Inputs (Width & Height): Updates dimensions and maintains aspect ratio
+            widthInput.addEventListener('input', () => {
+                if (maintainAspectRatio.checked && originalWidth && originalHeight) {
+                    const newWidth = parseInt(widthInput.value);
+                    if (!isNaN(newWidth) && newWidth > 0) {
+                        const aspectRatio = originalWidth / originalHeight;
+                        heightInput.value = Math.round(newWidth / aspectRatio); // Calculate height
+                    } else if (widthInput.value === '') { // If width is cleared
+                        heightInput.value = ''; // Clear height too
+                    }
+                }
+                processImage(); // Re-process image with new dimensions
+            });
+
+            heightInput.addEventListener('input', () => {
+                if (maintainAspectRatio.checked && originalWidth && originalHeight) {
+                    const newHeight = parseInt(heightInput.value);
+                    if (!isNaN(newHeight) && newHeight > 0) {
+                        const aspectRatio = originalWidth / originalHeight;
+                        widthInput.value = Math.round(newHeight * aspectRatio); // Calculate width
+                    } else if (heightInput.value === '') { // If height is cleared
+                        widthInput.value = ''; // Clear width too
+                    }
+                }
+                processImage(); // Re-process image with new dimensions
+            });
+
+            // 6. Maintain Aspect Ratio Checkbox: Toggles aspect ratio lock
+            maintainAspectRatio.addEventListener('change', () => {
+                if (maintainAspectRatio.checked && originalWidth && originalHeight) {
+                    // When checked, recalculate height based on width if width is set, or vice versa
+                    if (widthInput.value) {
+                        widthInput.dispatchEvent(new Event('input')); // Trigger width input logic
+                    } else if (heightInput.value) {
+                         heightInput.dispatchEvent(new Event('input')); // Trigger height input logic
+                    } else { // If both are empty, reset to original dimensions
+                        widthInput.value = originalWidth;
+                        heightInput.value = originalHeight;
+                    }
+                }
+                processImage(); // Recalculate dimensions and process
+            });
+
+            // 7. Download Button Click: Triggers image download
+            downloadBtn.addEventListener('click', downloadImage);
+
+            // 8. Reset Button Click: Clears all inputs and resets the tool
+            resetBtn.addEventListener('click', clearForm);
+
+            // --- Initial Setup ---
+            clearForm(); // Call clearForm on page load to set initial UI state
+        });
+    </script>
+</body>
+</html>
